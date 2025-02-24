@@ -25,11 +25,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyyaml requests
     
-    - name: Clean workspace
-      run: |
-        git clean -fd
-        git reset --hard HEAD
-    
     - name: Run conversion script
       run: python convert_nodes.py
     
@@ -37,7 +32,8 @@ jobs:
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git fetch origin
+        git reset --hard origin/main
         git add subscription.txt
-        git commit -m "Update subscription $(date '+%Y-%m-%d')" || true
-        git pull --rebase
+        git commit -m "Update subscription $(date '+%Y-%m-%d')"
         git push 
