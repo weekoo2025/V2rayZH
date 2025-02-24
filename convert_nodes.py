@@ -3,6 +3,7 @@ import json
 import requests
 import base64
 from urllib.parse import quote, urlencode
+import os
 
 def convert_to_v2ray(proxy):
     """将单个代理配置转换为v2ray格式"""
@@ -21,7 +22,11 @@ def convert_to_v2ray(proxy):
         # 移除空值参数
         params = {k: v for k, v in params.items() if v}
         
-        url = f"vless://{proxy['uuid']}@{proxy['server']}:{proxy['port']}?{urlencode(params)}#{quote(proxy['name'])}"
+        # 确保编码正确
+        server_name = quote(proxy['name'])
+        params_str = urlencode(params)
+        
+        url = f"vless://{proxy['uuid']}@{proxy['server']}:{proxy['port']}?{params_str}#{server_name}"
         return url
         
     elif proxy_type == "trojan":
@@ -37,7 +42,11 @@ def convert_to_v2ray(proxy):
         # 移除空值参数
         params = {k: v for k, v in params.items() if v}
         
-        url = f"trojan://{proxy['password']}@{proxy['server']}:{proxy['port']}?{urlencode(params)}#{quote(proxy['name'])}"
+        # 确保编码正确
+        server_name = quote(proxy['name'])
+        params_str = urlencode(params)
+        
+        url = f"trojan://{proxy['password']}@{proxy['server']}:{proxy['port']}?{params_str}#{server_name}"
         return url
         
     else:
@@ -47,7 +56,12 @@ def convert_to_v2ray(proxy):
 def generate_subscription(configs):
     """生成订阅链接内容"""
     valid_links = [link for link in configs if link is not None]
-    return base64.b64encode('\n'.join(valid_links).encode()).decode()
+    # 确保每个链接独占一行
+    content = '\n'.join(valid_links)
+    # 添加一个换行确保base64编码正确
+    if not content.endswith('\n'):
+        content += '\n'
+    return base64.b64encode(content.encode('utf-8')).decode('utf-8')
 
 def main():
     try:
@@ -68,8 +82,10 @@ def main():
         subscription = generate_subscription(v2ray_links)
         
         # 保存到文件
-        with open("subscription.txt", "w") as f:
+        with open("subscription.txt", "w", encoding='utf-8', newline='\n') as f:
             f.write(subscription)
+            f.flush()  # 确保写入磁盘
+            os.fsync(f.fileno())  # 强制同步到磁盘
         
         print(f"转换完成！成功转换 {len(v2ray_links)} 个节点")
         
