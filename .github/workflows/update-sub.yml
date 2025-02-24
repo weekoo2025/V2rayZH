@@ -13,12 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3  # 更新到v3版本
+      with:
+        fetch-depth: 0     # 获取完整历史
     
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4  # 更新到v4版本
       with:
         python-version: '3.x'
+        cache: 'pip'      # 启用pip缓存
     
     - name: Install dependencies
       run: |
@@ -27,22 +30,19 @@ jobs:
     
     - name: Run conversion script
       run: |
-        # 删除旧文件（如果存在）
-        rm -f subscription.txt
-        # 运行转换脚本
         python convert_nodes.py
     
     - name: Git operations
       run: |
-        # 配置 git
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         
-        # 强制添加文件
+        # 检查文件是否有变化
+        if git diff --quiet subscription.txt; then
+          echo "No changes to subscription.txt"
+          exit 0
+        fi
+        
         git add subscription.txt
-        
-        # 提交更改
         git commit -m "Update subscription $(date '+%Y-%m-%d')"
-        
-        # 直接推送
         git push 
