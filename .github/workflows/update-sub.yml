@@ -15,9 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        fetch-depth: 1
         ref: main
-        token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -34,12 +32,16 @@ jobs:
       run: |
         python convert_nodes.py
     
-    - name: Force Update
+    - name: Commit changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         
-        # 强制更新
-        git add -A
-        git commit -m "Force update subscription $(date '+%Y-%m-%d')" --allow-empty
-        git push --force origin main 
+        # 只添加subscription.txt文件
+        git add subscription.txt
+        
+        # 尝试提交，如果没有更改则跳过
+        git diff --staged --quiet || git commit -m "Update subscription $(date '+%Y-%m-%d')"
+        
+        # 如果有提交才推送
+        git diff --quiet origin/main || git push 
