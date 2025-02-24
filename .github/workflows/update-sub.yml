@@ -13,7 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - name: Create temp directory
+      run: |
+        mkdir -p workspace
+        cd workspace
+    
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        path: workspace
     
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -22,36 +30,20 @@ jobs:
     
     - name: Install dependencies
       run: |
+        cd workspace
         python -m pip install --upgrade pip
         pip install pyyaml requests
     
     - name: Run conversion script
       run: |
-        # 创建临时目录
-        mkdir -p temp
-        cd temp
-        cp ../convert_nodes.py .
-        
-        # 运行转换脚本
+        cd workspace
         python convert_nodes.py
-        
-        # 复制结果回主目录
-        cp subscription.txt ../
-        cd ..
-        rm -rf temp
     
     - name: Commit and Push
       run: |
+        cd workspace
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        
-        # 检查文件是否有变化
-        if git diff --quiet subscription.txt; then
-          echo "No changes to subscription.txt"
-          exit 0
-        fi
-        
-        # 提交更改
         git add subscription.txt
-        git commit -m "Update subscription $(date '+%Y-%m-%d')"
+        git commit -m "Update subscription $(date '+%Y-%m-%d')" || echo "No changes to commit"
         git push 
