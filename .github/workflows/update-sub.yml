@@ -14,9 +14,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v2
-      with:
-        ref: main          # 明确检出main分支
-        fetch-depth: 0     # 获取完整历史
     
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -30,16 +27,12 @@ jobs:
     
     - name: Run conversion script
       run: |
-        rm -f subscription.txt  # 删除旧文件（如果存在）
         python convert_nodes.py
-        echo "Generated file content:"
-        base64 -d subscription.txt || echo "Not base64 encoded"
     
-    - name: Force Update
+    - name: Commit and Push
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git pull origin main --rebase  # 确保是最新的
-        git add -f subscription.txt
-        git diff --staged --quiet || git commit -m "Force update subscription $(date '+%Y-%m-%d %H:%M:%S')"
-        git push origin main --force 
+        git add subscription.txt
+        git commit -m "Update subscription" || true
+        git push 
