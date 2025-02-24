@@ -20,4 +20,7 @@ Thumbs.db
 
 # 临时文件
 *.log
-*.tmp 
+*.tmp
+
+# 不要忽略subscription.txt
+!subscription.txt 
