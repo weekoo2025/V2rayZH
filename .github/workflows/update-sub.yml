@@ -13,15 +13,17 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3  # 更新到v3版本
+    - uses: actions/checkout@v3
       with:
-        fetch-depth: 0     # 获取完整历史
+        fetch-depth: 1
+        ref: main
+        token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Set up Python
-      uses: actions/setup-python@v4  # 更新到v4版本
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
-        cache: 'pip'      # 启用pip缓存
+        cache: 'pip'
     
     - name: Install dependencies
       run: |
@@ -32,17 +34,12 @@ jobs:
       run: |
         python convert_nodes.py
     
-    - name: Git operations
+    - name: Force Update
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         
-        # 检查文件是否有变化
-        if git diff --quiet subscription.txt; then
-          echo "No changes to subscription.txt"
-          exit 0
-        fi
-        
-        git add subscription.txt
-        git commit -m "Update subscription $(date '+%Y-%m-%d')"
-        git push 
+        # 强制更新
+        git add -A
+        git commit -m "Force update subscription $(date '+%Y-%m-%d')" --allow-empty
+        git push --force origin main 
