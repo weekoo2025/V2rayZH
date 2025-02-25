@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0    # 获取完整的git历史
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub Token
     
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -38,11 +38,10 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         
-        # 完全重置本地仓库状态
-        git fetch origin
-        git reset --hard origin/main
+        # 拉取最新的更改
+        git pull origin main
         
-        # 重新添加更改
+        # 添加更改
         git add subscription.txt
         
         # 检查是否有实际更改
@@ -54,6 +53,5 @@ jobs:
         # 提交更改
         git commit -m "Update subscription $(date '+%Y-%m-%d %H:%M:%S')"
         
-        # 使用force-with-lease来推送
-        # 这样可以确保只有在远程分支没有其他人推送的情况下才强制推送
-        git push --force-with-lease origin main
+        # 推送更改
+        git push origin main
