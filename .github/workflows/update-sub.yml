@@ -13,7 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3   # 更新到 v3 版本
+      with:
+        fetch-depth: 0    # 获取完整的git历史
     
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -27,13 +29,18 @@ jobs:
     
     - name: Run conversion script
       run: |
-        rm -f subscription.txt
         python convert_nodes.py
     
     - name: Update Repository
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add -f subscription.txt
-        git commit -m "Update subscription $(date '+%Y-%m-%d %H:%M:%S')" --allow-empty
-        git push origin main
+        
+        # 检查文件是否有变化
+        if [[ -n $(git status -s) ]]; then
+          git add subscription.txt
+          git commit -m "Update subscription $(date '+%Y-%m-%d %H:%M:%S')"
+          git push
+        else
+          echo "No changes to commit"
+        fi

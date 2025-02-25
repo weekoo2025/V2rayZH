@@ -65,32 +65,33 @@ def generate_subscription(configs):
 
 def main():
     try:
-        # 直接从URL获取YAML内容
+        print("开始获取YAML数据...")
         url = "https://raw.githubusercontent.com/go4sharing/sub/main/worker.yaml"
         response = requests.get(url)
         response.raise_for_status()
         yaml_data = yaml.safe_load(response.text)
         
-        # 转换所有代理配置
+        print(f"成功获取YAML数据，开始转换代理配置...")
         v2ray_links = []
         for proxy in yaml_data.get("proxies", []):
             link = convert_to_v2ray(proxy)
             if link:
                 v2ray_links.append(link)
         
-        # 生成订阅内容
+        print(f"转换完成，共有 {len(v2ray_links)} 个有效节点")
         subscription = generate_subscription(v2ray_links)
         
-        # 保存到文件
+        print("正在写入文件...")
         with open("subscription.txt", "w", encoding='utf-8', newline='\n') as f:
             f.write(subscription)
-            f.flush()  # 确保写入磁盘
-            os.fsync(f.fileno())  # 强制同步到磁盘
+            f.flush()
+            os.fsync(f.fileno())
         
-        print(f"转换完成！成功转换 {len(v2ray_links)} 个节点")
+        print("文件写入完成！")
         
     except Exception as e:
-        print(f"处理过程中出错: {e}")
+        print(f"错误: {e}")
+        raise  # 重新抛出异常以确保 GitHub Actions 知道任务失败
 
 if __name__ == "__main__":
     main() 
