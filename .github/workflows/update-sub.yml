@@ -13,9 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3   # 更新到 v3 版本
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0    # 获取完整的git历史
+        token: ${{ secrets.GITHUB_TOKEN }}  # 添加token
     
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -33,17 +34,30 @@ jobs:
     
     - name: Update Repository
       run: |
+        # 配置 Git
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         
-        # 先拉取最新的更改
+        # 确保我们在正确的分支上
+        git fetch origin main
+        git checkout main
+        
+        # 同步远程更改
         git pull origin main --rebase
         
         # 检查文件是否有变化
         if [[ -n $(git status -s) ]]; then
+          # 添加更改
           git add subscription.txt
           git commit -m "Update subscription $(date '+%Y-%m-%d %H:%M:%S')"
-          git push origin main
+          
+          # 再次同步并推送
+          git pull origin main --rebase
+          git push origin main || {
+            # 如果推送失败，再试一次
+            git pull origin main --rebase
+            git push origin main
+          }
         else
           echo "No changes to commit"
         fi
