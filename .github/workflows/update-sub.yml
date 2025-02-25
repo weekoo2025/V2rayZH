@@ -16,7 +16,8 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0    # 获取完整的git历史
-        token: ${{ secrets.GITHUB_TOKEN }}  # 使用 GitHub Token
+        ref: main         # 明确指定分支
+        token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -38,20 +39,40 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         
-        # 拉取最新的更改
-        git pull origin main
+        # 显示当前状态
+        echo "当前分支状态："
+        git status
+        
+        # 确保在正确的分支上
+        git checkout main
+        
+        # 同步远程更改
+        echo "同步远程更改..."
+        git fetch origin main
+        git merge origin/main --no-edit || {
+          echo "合并失败，尝试解决冲突..."
+          git reset --hard origin/main
+          python convert_nodes.py  # 重新生成文件
+        }
         
         # 添加更改
+        echo "添加更改..."
         git add subscription.txt
         
         # 检查是否有实际更改
-        if git diff --staged --quiet; then
+        if git diff --cached --quiet; then
           echo "没有发现更改，跳过提交"
           exit 0
         fi
         
         # 提交更改
+        echo "提交更改..."
         git commit -m "Update subscription $(date '+%Y-%m-%d %H:%M:%S')"
         
-        # 推送更改
-        git push origin main
+        # 尝试推送更改，如果失败则重试
+        echo "推送更改..."
+        git push origin main || {
+          echo "推送失败，重试..."
+          git pull --rebase origin main
+          git push origin main
+        }
