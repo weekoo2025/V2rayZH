@@ -36,11 +36,14 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         
+        # 先拉取最新的更改
+        git pull origin main --rebase
+        
         # 检查文件是否有变化
         if [[ -n $(git status -s) ]]; then
           git add subscription.txt
           git commit -m "Update subscription $(date '+%Y-%m-%d %H:%M:%S')"
-          git push
+          git push origin main
         else
           echo "No changes to commit"
         fi
