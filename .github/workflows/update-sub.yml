@@ -57,7 +57,7 @@ jobs:
         
         # 添加更改
         echo "添加更改..."
-        git add subscription.txt
+        git add subscription*.txt
         
         # 检查是否有实际更改
         if git diff --cached --quiet; then
@@ -67,7 +67,7 @@ jobs:
         
         # 提交更改
         echo "提交更改..."
-        git commit -m "Update subscription $(date '+%Y-%m-%d %H:%M:%S')"
+        git commit -m "Update subscriptions $(date '+%Y-%m-%d %H:%M:%S')"
         
         # 尝试推送更改，如果失败则重试
         echo "推送更改..."
